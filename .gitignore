@@ -1,2 +1,2 @@
 ./scrapper/venv/*
-./scrapper/__pycache__
+scrapper/__pycache__
