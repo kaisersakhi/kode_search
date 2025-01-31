@@ -1,5 +1,6 @@
 import scrapy
 import json
+from models.models import ApplicationModel, Domain, Url, FileQueue
 
 class KodeSpider(scrapy.Spider):
     name = "kode"
@@ -10,6 +11,11 @@ class KodeSpider(scrapy.Spider):
             data = json.load(file)
             self.start_urls = data["links"]
             self.allowed_domains = self.start_urls
+
+        # Connect Database
+        ApplicationModel.database.coonect()
+        ApplicationModel.database.create_tables([Domain, Url, FileQueue], safe=True)
+        
         super().__init__()
 
 
