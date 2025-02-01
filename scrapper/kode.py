@@ -127,13 +127,12 @@ def is_enqueable(link):
     return False
 
 def url_visited_before(response):
-    url_count = 0
-
     domains = Domain.select().where(Domain.name==current_domain)
     
-    if domains.count() > 0:
-        url_count = domains[0].urls.count()
+    # Only 10000 pages should be scrapped from a specific domain.
+    if domains.count() > 0 and domains[0].urls.count() > 10000:
+        return True
 
-    return Url.select().where(Url.uri==response.url).count() > 0 or url_count > 1000
+    return Url.select().where(Url.uri==response.url).count() > 0
 
 # Domain.select().where(Domain.name==current_domain(response))
