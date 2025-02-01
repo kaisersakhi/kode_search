@@ -13,7 +13,6 @@ class Domain(ApplicationModel):
     name = CharField(index=True, unique=True)
 
 class Url(ApplicationModel):
-    id = CharField(primary_key=True)
     uri = CharField(index=True, unique=True)
     title = CharField(index=True)
     html_file_path = CharField()
