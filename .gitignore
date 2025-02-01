@@ -1,3 +1,4 @@
 ./scrapper/venv/*
 scrapper/__pycache__
 scrapper/models/__pycache__
+data
