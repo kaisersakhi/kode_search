@@ -8,6 +8,6 @@ services:
       POSTGRES_PASSWORD: kaisersakhi
       POSTGRES_DB: kode_db
     volumes:
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./data/database/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5433:5432"
