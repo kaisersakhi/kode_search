@@ -15,7 +15,9 @@ class KodeSpider(scrapy.Spider):
     allowed_domains = ["kode.com"]
 
     def __init__(self):
-        with open("./domains.json", "r") as file:
+        self.pwd = os.path.dirname(os.path.abspath(__file__))
+
+        with open(os.path.join(self.pwd, "domains.json"), "r") as file:
             data = json.load(file)
             self.start_urls = data["start_urls"]
             self.allowed_domains = data["allowed_domains"]
@@ -30,6 +32,8 @@ class KodeSpider(scrapy.Spider):
 
     def parse(self, response):
         # Return if Url has already been processed.
+        # import pdb; pdb.set_trace()
+
         if url_visited_before(response):
             return
         
