@@ -11,3 +11,13 @@ services:
       - ./data/database/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5433:5432"
+  vespa:
+    image: vespaengine/vespa
+    container_name: vespa
+    ports:
+      - "8080:8080"
+      - "19071:19071"
+    environment:
+      - VESPA_CONFIGSERVE = true
+    volumes:
+      - ./data/vespa-data:/opt/vespa/var
