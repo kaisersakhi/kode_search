@@ -9,10 +9,22 @@ import os
 import trafilatura as trafil
 from pathlib import Path
 import re
+from scrapy.crawler import CrawlerProcess
 
 class KodeSpider(scrapy.Spider):
     name = "kode"
     allowed_domains = ["kode.com"]
+
+    custom_settings = {
+        "CONCURRENT_REQUESTS": 32,  # Increase parallel requests
+        "CONCURRENT_REQUESTS_PER_DOMAIN": 16,
+        "CONCURRENT_REQUESTS_PER_IP": 16,
+        "DOWNLOAD_DELAY": 0.25,  # Adjust if getting blocked
+        "AUTOTHROTTLE_ENABLED": True,
+        "AUTOTHROTTLE_START_DELAY": 1,
+        "AUTOTHROTTLE_MAX_DELAY": 5,
+        "USER_AGENT": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",  # Rotate if needed
+    }
 
     def __init__(self):
         self.pwd = os.path.dirname(os.path.abspath(__file__))
@@ -38,7 +50,7 @@ class KodeSpider(scrapy.Spider):
             return
         
         # Sleep before proceeding further.
-        time.sleep(2)
+        time.sleep(1)
         timestamp = time.time()
 
         create_dirs_for(current_domain(response))
@@ -138,5 +150,3 @@ def url_visited_before(response):
         return True
 
     return Url.select().where(Url.uri==response.url).count() > 0
-
-# Domain.select().where(Domain.name==current_domain(response))
