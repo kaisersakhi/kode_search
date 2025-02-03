@@ -3,12 +3,14 @@ services:
     image: postgres:17
     container_name: postgres_db
     restart: always
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: kaisersakhi
-      POSTGRES_PASSWORD: kaisersakhi
-      POSTGRES_DB: kode_db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     volumes:
-      - ./data/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./${SHARED_DATA_PATH}/database/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5433:5432"
 
@@ -24,10 +26,12 @@ services:
   vespa:
     image: vespaengine/vespa
     container_name: vespa
+    env_file:
+      - .env
     ports:
       - "8080:8080"
       - "19071:19071"
     environment:
       - VESPA_CONFIGSERVE = true
     volumes:
-      - ./data/vespa-data:/opt/vespa/var
+      - ./${SHARED_DATA_PATH}/vespa-data:/opt/vespa/var
