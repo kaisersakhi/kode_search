@@ -1,7 +1,13 @@
+import os
 class KodeConfig:
-    db_name = "kode_db"
-    db_user = "kaisersakhi"
-    db_password = "kaisersakhi"
-    db_url = "localhost"
-    db_port = 5433
-    data_path = "/Users/kaisersakhi/icode/crawling/kode_search/data"
+    @staticmethod
+    def get(key):
+        config = {
+            "db_name": os.getenv("DB_NAME"),
+            "db_user": os.getenv("DB_USER"),
+            "db_password": os.getenv("DB_PASSWORD"),
+            "db_port": os.getenv("DB_PORT"),
+            "shared_data_path": os.getenv("SHARED_DATA_PATH")
+        }
+
+        return config.get(key)

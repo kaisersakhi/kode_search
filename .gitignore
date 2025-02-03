@@ -2,3 +2,6 @@
 scrapper/__pycache__
 scrapper/models/__pycache__
 data
+feeder/venv/*
+feeder/models/__pycache__
+.env

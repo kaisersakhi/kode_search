@@ -11,6 +11,16 @@ services:
       - ./data/database/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5433:5432"
+
+  scrapper:
+    build:
+      context: ./scrapper
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+
   vespa:
     image: vespaengine/vespa
     container_name: vespa

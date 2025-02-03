@@ -1,13 +1,13 @@
-from peewee import PostgresqlDatabase, Model, CharField, TextField, ForeignKeyField, DateTimeField, BooleanField
+from peewee import PostgresqlDatabase, Model, CharField, ForeignKeyField, DateTimeField, BooleanField
 import datetime
-from kode_config import KodeConfig
+import os
 
 db = PostgresqlDatabase(
-        KodeConfig.get("db_name"),
-        user=KodeConfig.get("db_user"),
-        password=KodeConfig.get("db_password"),
-        host=KodeConfig.get("db_url"), 
-        port=KodeConfig.get("db_port")
+        os.getenv("DB_NAME"), 
+        user=os.getenv("DB_USER"), 
+        password=os.getenv("DB_PASSWORD"), 
+        host=os.getenv("DB_URL"), 
+        port=os.getenv("DB_PORT")
     )
 
 class ApplicationModel(Model):

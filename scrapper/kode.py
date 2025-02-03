@@ -16,14 +16,12 @@ class KodeSpider(scrapy.Spider):
     allowed_domains = ["kode.com"]
 
     custom_settings = {
-        "CONCURRENT_REQUESTS": 32,  # Increase parallel requests
-        "CONCURRENT_REQUESTS_PER_DOMAIN": 16,
-        "CONCURRENT_REQUESTS_PER_IP": 16,
-        "DOWNLOAD_DELAY": 0.25,  # Adjust if getting blocked
+        "CONCURRENT_REQUESTS": 64,  # Increase parallel requests
+        "CONCURRENT_REQUESTS_PER_DOMAIN": 1,
+        "DOWNLOAD_DELAY": 0.25,  # Delay between each request
         "AUTOTHROTTLE_ENABLED": True,
         "AUTOTHROTTLE_START_DELAY": 1,
         "AUTOTHROTTLE_MAX_DELAY": 5,
-        "USER_AGENT": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",  # Rotate if needed
     }
 
     def __init__(self):
@@ -38,7 +36,7 @@ class KodeSpider(scrapy.Spider):
         ApplicationModel.database.connect()
         ApplicationModel.database.create_tables([Domain, Url, FileQueue], safe=True)
 
-        self.data_dir = KodeConfig.data_path
+        self.data_dir = KodeConfig.get("shared_data_path")
         super().__init__()
 
 
@@ -87,13 +85,13 @@ class KodeSpider(scrapy.Spider):
 
 
 def create_dirs_for(current_domain):
-    os.makedirs(os.path.join(KodeConfig.data_path, current_domain), exist_ok=True)
-    os.makedirs(os.path.join(KodeConfig.data_path, current_domain, "html_files"), exist_ok=True)
-    os.makedirs(os.path.join(KodeConfig.data_path, current_domain, "json_files"), exist_ok=True)
+    os.makedirs(os.path.join(KodeConfig.get("shared_data_path"), current_domain), exist_ok=True)
+    os.makedirs(os.path.join(KodeConfig.get("shared_data_path"), current_domain, "html_files"), exist_ok=True)
+    os.makedirs(os.path.join(KodeConfig.get("shared_data_path"), current_domain, "json_files"), exist_ok=True)
 
 def get_file_name(current_domain, title, extension):
     sub_dir = "html_files" if extension == "html" else "json_files"
-    return str(os.path.join(KodeConfig.data_path, current_domain, sub_dir, f"{title}.{extension}"))
+    return str(os.path.join(KodeConfig.get("shared_data_path"), current_domain, sub_dir, f"{title}.{extension}"))
 
 def get_json_content(response, ts, title, html_file_name):
     # import pdb; pdb.set_trace()
