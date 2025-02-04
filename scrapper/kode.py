@@ -91,7 +91,7 @@ def create_dirs_for(current_domain):
 
 def get_file_name(current_domain, title, extension):
     sub_dir = "html_files" if extension == "html" else "json_files"
-    return str(os.path.join(KodeConfig.get("shared_data_path"), current_domain, sub_dir, f"{title}.{extension}"))
+    return str(os.path.join(current_domain, sub_dir, f"{title}.{extension}"))
 
 def get_json_content(response, ts, title, html_file_name):
     # import pdb; pdb.set_trace()
@@ -107,7 +107,8 @@ def get_json_content(response, ts, title, html_file_name):
 
 
 def write_to_fs(content, file_name):
-    Path(file_name).write_text(content)
+    full_path = os.path.join(KodeConfig.get("shared_data_path"), file_name)
+    Path(full_path).write_text(content)
 
 def get_page_paths(response):
     return response.xpath("//a/@href").extract()
