@@ -1,0 +1,16 @@
+schema kode_app {
+    document kode_document {
+        field title type text { 
+            indexing: summary | index
+        }
+        field text type text {
+            indexing: summary | index
+        }
+        field timestamp type long {  
+            indexing: attribute | summary
+        }
+        field url type string {
+            indexing: summary
+        }
+    }
+}
