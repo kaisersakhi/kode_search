@@ -49,7 +49,7 @@ class KodeSpider(scrapy.Spider):
         
         # Sleep before proceeding further.
         time.sleep(1)
-        timestamp = time.time()
+        timestamp = int(time.time())
 
         create_dirs_for(current_domain(response))
 
@@ -98,7 +98,7 @@ def get_json_content(response, ts, title, html_file_name):
     json_str = trafil.extract(response.body, output_format="json")
     json_body = json.loads(json_str)
 
-    json_body["id"] = f"id:kode_app:kode_app::{title}"
+    json_body["title"] = title
     json_body["timestamp"] = ts
     json_body["url"] = response.url
     json_body["html_source"] = html_file_name
