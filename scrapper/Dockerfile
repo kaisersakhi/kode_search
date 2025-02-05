@@ -10,4 +10,4 @@ ARG SHARED_DATA_PATH
 
 ENV SHARED_DATA_PATH=$SHARED_DATA_PATH
 
-CMD sh -c 'scrapy runspider kode.py -s JOBDIR=$SHARED_DATA_PATH'
+CMD sh -c 'scrapy runspider kode.py -s JOBDIR=${SHARED_DATA_PATH}'

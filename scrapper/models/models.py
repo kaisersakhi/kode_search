@@ -1,12 +1,17 @@
 from peewee import PostgresqlDatabase, Model, CharField, TextField, ForeignKeyField, DateTimeField, BooleanField
 import datetime
 from kode_config import KodeConfig
+import os
+
+# import pdb; pdb.set_trace()
+
+print("The docker host is : ", os.getenv("DB_URL"))
 
 db = PostgresqlDatabase(
         KodeConfig.get("db_name"),
         user=KodeConfig.get("db_user"),
         password=KodeConfig.get("db_password"),
-        host=KodeConfig.get("db_url"), 
+        host=KodeConfig.get("db_url"),
         port=KodeConfig.get("db_port")
     )
 

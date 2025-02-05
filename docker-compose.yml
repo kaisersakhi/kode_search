@@ -10,9 +10,16 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     volumes:
-      - ./${SHARED_DATA_PATH}/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ${SHARED_DATA_PATH}/database/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5433:5432"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   scrapper:
     build:
@@ -22,6 +29,10 @@ services:
       - .env
     depends_on:
       - postgres
+    networks:
+      - backend
+    volumes:
+      - ${SHARED_DATA_PATH}:/data
 
   vespa:
     image: vespaengine/vespa
@@ -32,6 +43,12 @@ services:
       - "8080:8080"
       - "19071:19071"
     environment:
-      - VESPA_CONFIGSERVE = true
+      - VESPA_CONFIGSERVE=true
     volumes:
       - ./${SHARED_DATA_PATH}/vespa-data:/opt/vespa/var
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
