@@ -5,3 +5,4 @@ data
 feeder/venv/*
 feeder/models/__pycache__
 .env
+.DS_STORE

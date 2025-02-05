@@ -40,9 +40,9 @@ services:
     container_name: vespa
     env_file:
       - .env
-    # ports:
-    #   - "8080:8080"
-    #   - "19071:19071"
+    ports:
+      - "8080:8080"
+      - "19071:19071"
     environment:
       - VESPA_CONFIGSERVE=true
     volumes:
