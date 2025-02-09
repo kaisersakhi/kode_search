@@ -44,7 +44,9 @@ class KodeSpider(scrapy.Spider):
         # Return if Url has already been processed.
         # import pdb; pdb.set_trace()
 
-        if url_visited_before(response):
+        # The order of the following condition is required, first we check if domain_has_hit the limit 
+        # after that url_visited_before has to be checked.
+        if has_hit_the_10k_limit(response) or url_visited_before(response):
             return
         
         # Sleep before proceeding further.
@@ -78,7 +80,8 @@ class KodeSpider(scrapy.Spider):
         for path in get_page_paths(response):
             fully_qualified_url = enqueueable_link(response, path)
 
-            if fully_qualified_url:
+            # Check if we have reahed the limit for the current domain, we don't want to waste time by filling the queueu with links that we are going to skip.
+            if fully_qualified_url and not has_hit_the_10k_limit(response):
                 print(f"Added {fully_qualified_url} to the frontier queue.")
         
                 yield scrapy.Request(fully_qualified_url, callback=self.parse)
@@ -98,6 +101,7 @@ def get_json_content(response, ts, title, html_file_name):
     json_str = trafil.extract(response.body, output_format="json")
     json_body = json.loads(json_str)
 
+    # json_body["text"] = ; json_body already has text attribute populated by trafil.extract function.
     json_body["title"] = title
     json_body["timestamp"] = ts
     json_body["url"] = response.url
@@ -142,10 +146,13 @@ def is_enqueable(link):
     return False
 
 def url_visited_before(response):
+    return Url.select().where(Url.uri==response.url).count() > 0
+
+def has_hit_the_10k_limit(response):
     domains = Domain.select().where(Domain.name==current_domain(response))
     
     # Only 10000 pages should be scrapped from a specific domain.
     if domains.exists() and Url.select().where(Url.domain == domains.get()).count() > 10000:
         return True
-
-    return Url.select().where(Url.uri==response.url).count() > 0
+    
+    return False
