@@ -1,9 +1,9 @@
 schema kode_app {
-    document kode_document {
-        field title type text { 
+    document kode_app {
+        field title type string { 
             indexing: summary | index
         }
-        field text type text {
+        field text type string {
             indexing: summary | index
         }
         field timestamp type long {  
