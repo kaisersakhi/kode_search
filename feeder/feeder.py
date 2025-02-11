@@ -51,6 +51,8 @@ def feed_to_vespa(file_record):
         print(response.json())
 
 def backoff():
+    global backoff_stage
+
     # Time range in minutes.
     stages = {
         0: 2,
@@ -58,6 +60,8 @@ def backoff():
         2: 30,
         3: 120
     }
+
+    print("Backingoff for ", stages[backoff_stage], " minutes...")
 
     time.sleep(stages[backoff_stage] * 60)
 
@@ -108,3 +112,6 @@ if __name__ == "__main__":
 # vespa feed mind/vespa.json --target http://localhost:8080
 
 # docker exec vespa bash -c '/opt/vespa/bin/vespa-deploy prepare /app/package && /opt/vespa/bin/vespa-deploy activate'
+
+
+# curl -X GET "http://localhost:8080/search/?yql=SELECT * FROM kode_app * WHERE userQuery()" -d 'query=c++'
