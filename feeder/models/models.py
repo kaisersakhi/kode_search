@@ -2,13 +2,22 @@ from peewee import PostgresqlDatabase, Model, CharField, ForeignKeyField, DateTi
 import datetime
 import os
 
+# db = PostgresqlDatabase(
+#         os.getenv("DB_NAME"), 
+#         user=os.getenv("DB_USER"), 
+#         password=os.getenv("DB_PASSWORD"), 
+#         host=os.getenv("DB_URL"), 
+#         port=os.getenv("DB_PORT")
+#     )
+
 db = PostgresqlDatabase(
-        os.getenv("DB_NAME"), 
-        user=os.getenv("DB_USER"), 
-        password=os.getenv("DB_PASSWORD"), 
-        host=os.getenv("DB_URL"), 
-        port=os.getenv("DB_PORT")
+        "kode_app", 
+        user="kaisersakhi", 
+        password="kaisersakhi", 
+        host="localhost", 
+        port=5433
     )
+
 
 class ApplicationModel(Model):
     database = db

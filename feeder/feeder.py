@@ -6,23 +6,32 @@ import requests
 
 backoff_stage = 0
 
-VESPA_URL = "http://vespa:8080/document/v1/kode_app/kode_document/docid/"
+# VESPA_URL = "http://vespa:8080/document/v1/kode_app/kode_app/docid/"
+VESPA_URL = "http://localhost:8080/document/v1/kode_app/kode_app/docid/"
 
 # id:kode_app:kode_document::<id>
 
-
-
 def read_data(file_record):
-    file_path = os.path.join("/data", file_record.path)
-    ## load the file
-    file = open(file_path, "r")
-    data = json.load(file)
-    file.close()
+    data = None
+    # file_path = os.path.join("/data", file_record.path)
+    try:
+        file_path = os.path.join("/Users/kaisersakhi/icode/crawling/kode_search/data", file_record.path)
+        ## load the file
+        file = open(file_path, "r")
+        data = json.load(file)
+        file.close()
+    except Exception as e:
+        print("Error occured while read file: ", e)
 
     return data
 
 def feed_to_vespa(file_record):
     data = read_data(file_record)
+
+    if data is None:
+        return
+
+    # import pdb; pdb.set_trace()
 
     request_data = {
         "fields":{
@@ -34,14 +43,15 @@ def feed_to_vespa(file_record):
     }
 
     response = requests.post(
-        VESPA_URL + file_record.id,
-        headers={"Content-Type": "application/json"}, data=json.dumps(request_data)
+        VESPA_URL + str(file_record.id),
+        headers = {"Content-Type": "application/json"}, data=json.dumps(request_data)
     )
 
     if response.status_code == 200:
         print(response.json())
 
 def backoff():
+    # Time range in minutes.
     stages = {
         0: 2,
         1: 10,
@@ -49,11 +59,11 @@ def backoff():
         3: 120
     }
 
-    time.sleep(stages[backoff_stage])
+    time.sleep(stages[backoff_stage] * 60)
 
     backoff_stage = (backoff_stage + 1) % 4
 
-if __file__ == "__main__":
+if __name__ == "__main__":
     ApplicationModel.database.connect()
 
     while True:
@@ -66,6 +76,35 @@ if __file__ == "__main__":
             feed_to_vespa(file_record)
 
             # mark the file_record as read
+            file_record.read = True
+            file_record.save()
 
 
 # https://localhost:8080/document/v1/kode_app/kode_document/docid/1
+
+
+
+# curl -X POST -F "file=@/Users/kaisersakhi/icode/crawling/kode_search/vespa/application.zip" http://localhost:19071/application/v2/tenant/default/session
+# curl -X POST -F "file=@/Users/kaisersakhi/icode/crawling/kode_search/data/kotlinlang.org/json_files/-1739076047.json" http://localhost:8080/document/v1/kode_app/kode_app/docid
+
+
+# /Users/kaisersakhi/icode/crawling/kode_search/data/kotlinlang.org/json_files/-1739076047.json
+
+# curl -X POST -H "Content-Type: -1739076047.json" -d @yourfile.json http://localhost:8080/document/v1/kode_app/kode_app/docid
+
+
+# curl -X POST -H "Content-Type:application/json" --data '
+#   {
+#       "fields": {
+#           "artist": "Coldplay",
+#           "album": "A Head Full of Dreams",
+#           "year": 2015
+#       }
+#   }' \
+#   http://localhost:8080/document/v1/mynamespace/music/docid/a-head-full-of-dreams
+# PUT	
+
+
+# vespa feed mind/vespa.json --target http://localhost:8080
+
+# docker exec vespa bash -c '/opt/vespa/bin/vespa-deploy prepare /app/package && /opt/vespa/bin/vespa-deploy activate'
