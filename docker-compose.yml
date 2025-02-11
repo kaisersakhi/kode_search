@@ -44,10 +44,9 @@ services:
       - "8080:8080"
       - "19071:19071"
     environment:
-      - VESPA_CONFIGSERVE=true
+      - VESPA_CONFIGSERVE=false
     volumes:
-      - ${SHARED_DATA_PATH}/vespa-data:/opt/vespa/var
-      - ./vespa/schemas:/opt/vespa/schema
+      - ./vespa:/app/package
     networks:
       - backend
 
