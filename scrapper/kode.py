@@ -10,6 +10,9 @@ import trafilatura as trafil
 from pathlib import Path
 import re
 from scrapy.crawler import CrawlerProcess
+from scrapy.utils.project import get_project_settings
+import math
+
 
 class KodeSpider(scrapy.Spider):
     name = "kode"
@@ -22,19 +25,16 @@ class KodeSpider(scrapy.Spider):
         "AUTOTHROTTLE_ENABLED": True,
         "AUTOTHROTTLE_START_DELAY": 1,
         "AUTOTHROTTLE_MAX_DELAY": 5,
+        "REDIRECT_MAX_TIMES": 3
     }
 
-    def __init__(self):
+    def __init__(self, urls=None, *args, **kwargs):
         self.pwd = os.path.dirname(os.path.abspath(__file__))
-
+        self.start_urls = urls.split()
         with open(os.path.join(self.pwd, "domains.json"), "r") as file:
             data = json.load(file)
-            self.start_urls = data["start_urls"]
+            # self.start_urls = data["start_urls"]
             self.allowed_domains = data["allowed_domains"]
-
-        # Connect Database
-        ApplicationModel.database.connect()
-        ApplicationModel.database.create_tables([Domain, Url, FileQueue], safe=True)
 
         self.data_dir = KodeConfig.get("shared_data_path")
         super().__init__()
@@ -156,3 +156,51 @@ def has_hit_the_10k_limit(response):
         return True
     
     return False
+
+
+def run_spider(urls):
+    print(f"Starting spider with {len(urls)} URLs")
+    process = CrawlerProcess(get_project_settings())
+    process.crawl(KodeSpider, start_urls=urls)
+    process.start()
+    print(f"Spider finished with {len(urls)} URLs")
+
+if __name__ == "__main__":
+    import subprocess
+    
+    # Connect Database
+    ApplicationModel.database.connect()
+    ApplicationModel.database.create_tables([Domain, Url, FileQueue], safe=True)
+
+    urls = None
+    pwd = os.path.dirname(os.path.abspath(__file__))
+    process_num = int(os.getenv("NO_OF_SUB_SCRAPY_PROCESSES") or '4')
+
+    with open(os.path.join(pwd, "domains.json"), "r") as file:
+        data = json.load(file)
+        urls = data["start_urls"]
+    
+    chunk_size = math.ceil(len(urls) / process_num)
+    forward_ptr = chunk_size
+    processes = []
+
+    # import pdb; pdb.set_trace()
+
+    for i in range(process_num):
+        start = i * chunk_size
+        end = min(start + chunk_size, len(urls))
+        chunk = urls[start:end]
+
+        url_list = " ".join(chunk)
+
+        if chunk:
+            # time.sleep(100)
+            # p = multiprocessing.Process(target=run_spider, args=(chunk,))
+            command = f"scrapy runspider kode.py -a urls='{url_list}'"
+            print(command)
+            p = subprocess.Popen(command, shell=True)
+            # p.start()
+            processes.append(p)
+    
+    for p in processes:
+        p.wait()
