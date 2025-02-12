@@ -75,6 +75,8 @@ if __name__ == "__main__":
         
         if not files:
             backoff()
+        else:
+            backoff_stage = 0
 
         for file_record in files:
             feed_to_vespa(file_record)
@@ -115,3 +117,4 @@ if __name__ == "__main__":
 
 
 # curl -X GET "http://localhost:8080/search/?yql=SELECT * FROM kode_app * WHERE userQuery()" -d 'query=c++'
+# curl -s "http://localhost:8080/search/?yql=select+*+from+kode_app+*+where+userQuery()" -d 'query=c'
