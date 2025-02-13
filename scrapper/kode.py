@@ -4,7 +4,6 @@ from models.models import ApplicationModel, Domain, Url, FileQueue
 from kode_config import KodeConfig
 import time
 from urllib.parse import urlparse
-import json
 import os
 import trafilatura as trafil
 from pathlib import Path
@@ -44,11 +43,11 @@ class KodeSpider(scrapy.Spider):
         # Return if Url has already been processed.
         # import pdb; pdb.set_trace()
 
-        # The order of the following condition is required, first we check if domain_has_hit the limit 
+        # The order of the following condition is required, first we check if domain_has_hit the limit
         # after that url_visited_before has to be checked.
         if has_hit_the_10k_limit(response) or url_visited_before(response):
             return
-        
+
         # Sleep before proceeding further.
         time.sleep(1)
         timestamp = int(time.time())
@@ -83,7 +82,7 @@ class KodeSpider(scrapy.Spider):
             # Check if we have reahed the limit for the current domain, we don't want to waste time by filling the queueu with links that we are going to skip.
             if fully_qualified_url and not has_hit_the_10k_limit(response):
                 print(f"Added {fully_qualified_url} to the frontier queue.")
-        
+
                 yield scrapy.Request(fully_qualified_url, callback=self.parse)
 
 
@@ -139,7 +138,7 @@ def enqueueable_link(response, path):
 
 def is_enqueable(link):
     #  only donwnload those webpage that have following keywords in thme:
-    # docs, doc, documentation, documentations, user_guide, guide, user_guides, instructions, 
+    # docs, doc, documentation, documentations, user_guide, guide, user_guides, instructions,
     pattern = r'\b(docs|doc|documentation|documentations|user_guide|guide|guides|user_guides|instructions|help|manual|how-to|tutorials|tutorial|references|reference|faq|api|support|kb|)\b'
     if re.search(pattern, link):
         return True
@@ -150,11 +149,11 @@ def url_visited_before(response):
 
 def has_hit_the_10k_limit(response):
     domains = Domain.select().where(Domain.name==current_domain(response))
-    
+
     # Only 10000 pages should be scrapped from a specific domain.
     if domains.exists() and Url.select().where(Url.domain == domains.get()).count() > 10000:
         return True
-    
+
     return False
 
 
@@ -167,7 +166,7 @@ def run_spider(urls):
 
 if __name__ == "__main__":
     import subprocess
-    
+
     # Connect Database
     ApplicationModel.database.connect()
     ApplicationModel.database.create_tables([Domain, Url, FileQueue], safe=True)
@@ -179,7 +178,7 @@ if __name__ == "__main__":
     with open(os.path.join(pwd, "domains.json"), "r") as file:
         data = json.load(file)
         urls = data["start_urls"]
-    
+
     chunk_size = math.ceil(len(urls) / process_num)
     forward_ptr = chunk_size
     processes = []
@@ -201,6 +200,6 @@ if __name__ == "__main__":
             p = subprocess.Popen(command, shell=True)
             # p.start()
             processes.append(p)
-    
+
     for p in processes:
         p.wait()
