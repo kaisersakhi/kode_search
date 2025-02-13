@@ -47,6 +47,7 @@ services:
       - VESPA_CONFIGSERVE=false
     volumes:
       - ./vespa:/app/package
+      - ./vespa/data:/opt/vespa/var
     networks:
       - backend
 
