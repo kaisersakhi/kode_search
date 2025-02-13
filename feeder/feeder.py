@@ -6,16 +6,17 @@ import requests
 
 backoff_stage = 0
 
-# VESPA_URL = "http://vespa:8080/document/v1/kode_app/kode_app/docid/"
-VESPA_URL = "http://localhost:8080/document/v1/kode_app/kode_app/docid/"
+VESPA_URL = "http://vespa:8080/document/v1/kode_app/kode_app/docid/"
+# VESPA_URL = "http://localhost:8080/document/v1/kode_app/kode_app/docid/"
 
 # id:kode_app:kode_document::<id>
 
 def read_data(file_record):
     data = None
-    # file_path = os.path.join("/data", file_record.path)
+
     try:
-        file_path = os.path.join("/Users/kaisersakhi/icode/crawling/kode_search/data", file_record.path)
+        file_path = os.path.join("/data", file_record.path)
+        # file_path = os.path.join("/Users/kaisersakhi/icode/crawling/kode_search/data", file_record.path)
         ## load the file
         file = open(file_path, "r")
         data = json.load(file)
@@ -72,7 +73,7 @@ if __name__ == "__main__":
 
     while True:
         files = FileQueue.select().where(FileQueue.read==False)
-        
+
         if not files:
             backoff()
         else:
@@ -108,7 +109,7 @@ if __name__ == "__main__":
 #       }
 #   }' \
 #   http://localhost:8080/document/v1/mynamespace/music/docid/a-head-full-of-dreams
-# PUT	
+# PUT
 
 
 # vespa feed mind/vespa.json --target http://localhost:8080
