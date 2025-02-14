@@ -44,7 +44,7 @@ def feed_to_vespa(file_record):
             "text": data["text"],
             "timestamp": data["timestamp"],
             "url": data["url"],
-            "embedding": embedding
+            "text_embedding": embedding
         }
     }
 
