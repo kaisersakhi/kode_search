@@ -48,8 +48,16 @@ services:
     volumes:
       - ./vespa:/app/package
       - ./vespa/data:/opt/vespa/var
+      - ./vespa/deploy-and-start.sh:/deploy-and-start.sh
     networks:
       - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:19071/state/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    post_start:
+      - command: ["/bin/sh", "-c", "/deploy-and-start.sh"]
 
   feeder:
     build:
@@ -59,6 +67,8 @@ services:
       - .env
     depends_on:
       postgres:
+        condition: service_healthy
+      vespa:
         condition: service_healthy
     networks:
       - backend
