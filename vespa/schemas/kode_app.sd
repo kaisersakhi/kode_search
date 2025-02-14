@@ -1,16 +1,36 @@
 schema kode_app {
     document kode_app {
-        field title type string { 
+        field title type string {
             indexing: summary | index
         }
         field text type string {
             indexing: summary | index
         }
-        field timestamp type long {  
+        field timestamp type long {
             indexing: attribute | summary
         }
         field url type string {
             indexing: summary
+        }
+
+        field text_embedding type tensor<float>(d0[768]) {
+            indexing: attribute | index
+            attribute {
+                distance-metric: angular
+            }
+        }
+    }
+
+    rank-profile kode_app inherits default {
+        inputs {
+            query(query_tensor) tensor<float>(d0[768])
+        }
+
+        first-phase {
+            expression: sum(query(query_tensor) * attribute(text_embedding))
+        }
+        second-phase {
+            expression: nativeRank(title, text) + sum(query(query_tensor) * attribute(text_embedding))
         }
     }
 }
