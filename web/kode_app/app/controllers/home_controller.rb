@@ -53,5 +53,6 @@ class HomeController < ApplicationController
   end
 
   def indexed_domains
+    @domains = Domain.joins(:urls).group(:name).select(:name, "COUNT(url.domain_id) AS url_count")
   end
 end
