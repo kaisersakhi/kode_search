@@ -51,4 +51,7 @@ class HomeController < ApplicationController
 
     data
   end
+
+  def indexed_domains
+  end
 end
