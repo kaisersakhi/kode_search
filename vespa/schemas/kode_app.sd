@@ -4,7 +4,8 @@ schema kode_app {
             indexing: summary | index
         }
         field text type string {
-            indexing: summary | index
+            indexing: attribute | summary | index
+            attribute: fast-search
         }
         field timestamp type long {
             indexing: attribute | summary

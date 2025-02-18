@@ -63,3 +63,7 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
+
+gem "transformers-rb", "~> 0.1.6"
+
+gem "torch-rb"

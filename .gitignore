@@ -6,3 +6,5 @@ feeder/venv/*
 feeder/models/__pycache__
 .env
 .DS_STORE
+web/kode_app/libtorch
+web/kode_app/libtorch.zip

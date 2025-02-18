@@ -51,7 +51,20 @@ def vector_search(query):
         print(f"Took {vespa_search_time * 1000} milliseconds")
 
 def text_search(query):
-    pass
+    global model
+
+    yql = "select * from kode_app where (text contains fuzzy(@user_query, 2))"
+
+    req_data = {
+        "yql": yql,
+        "user_query": query
+    }
+
+    import pdb; pdb.set_trace()
+
+    data, vespa_search_time = make_request(req_data)
+
+    print(data)
 
 def hybrid_search(query):
     pass

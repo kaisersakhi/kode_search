@@ -1,0 +1,14 @@
+<div class="pt-4">
+    <a href="<%= root_path %>">
+        <h2 class="text-white text-xl font-bold">Kode Search</h2>
+    </a>
+</div>
+
+<hr class="py-4">
+
+<div>
+    <p class="text-white">Result found in <%= @data[:metadata][:query_time] %>ms</p>
+    <% @data[:items].each do |item| %>
+        <%= render "search_item", item: item %>
+    <% end %>
+</div>
