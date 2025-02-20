@@ -15,17 +15,16 @@ import math
 
 class KodeSpider(scrapy.Spider):
     name = "kode"
-    allowed_domains = ["kode.com"]
+    allowed_domains = []
+    start_urls = []
 
-    custom_settings = {
-        "CONCURRENT_REQUESTS": 64,  # Increase parallel requests
-        "CONCURRENT_REQUESTS_PER_DOMAIN": 1,
-        "DOWNLOAD_DELAY": 0.25,  # Delay between each request
-        "AUTOTHROTTLE_ENABLED": True,
-        "AUTOTHROTTLE_START_DELAY": 1,
-        "AUTOTHROTTLE_MAX_DELAY": 5,
-        "REDIRECT_MAX_TIMES": 3
-    }
+    @classmethod
+    def update_settings(cls, settings):
+        super().update_settings(settings)
+        settings.set("CONCURRENT_REQUESTS", 32, priority="spider")
+        # settings.set("CONCURRENT_REQUESTS_PER_DOMAIN", 2, priority="spider")
+        settings.set("REDIRECT_MAX_TIMES", 3, priority="spider")
+        settings.set("AUTOTHROTTLE_ENABLED", True, priority="spider")
 
     def __init__(self, urls=None, *args, **kwargs):
         self.pwd = os.path.dirname(os.path.abspath(__file__))
@@ -36,6 +35,11 @@ class KodeSpider(scrapy.Spider):
             self.allowed_domains = data["allowed_domains"]
 
         self.data_dir = KodeConfig.get("shared_data_path")
+
+        #     # Connect Database
+        # ApplicationModel.database.connect()
+        # ApplicationModel.database.create_tables([Domain, Url, FileQueue], safe=True)
+
         super().__init__()
 
 
@@ -49,12 +53,12 @@ class KodeSpider(scrapy.Spider):
             return
 
         # Sleep before proceeding further.
-        time.sleep(1)
+        # time.sleep(1)
         timestamp = int(time.time())
 
         create_dirs_for(current_domain(response))
 
-        title = "_".join(response.url.split("/")[3:]) + f"-{timestamp}"
+        title = "_".join(response.css("title::text").getall()).replace("\n", "").strip() + f"-{timestamp}"
 
         json_file_name = get_file_name(current_domain(response), title, extension="json")
         html_file_name = get_file_name(current_domain(response), title, extension="html")
@@ -183,7 +187,7 @@ if __name__ == "__main__":
     forward_ptr = chunk_size
     processes = []
 
-    # import pdb; pdb.set_trace()
+    os.makedirs(os.path.join(KodeConfig.get("shared_data_path"), "scrapy_spider_state_dir"), exist_ok=True)
 
     for i in range(process_num):
         start = i * chunk_size
@@ -193,12 +197,12 @@ if __name__ == "__main__":
         url_list = " ".join(chunk)
 
         if chunk:
-            # time.sleep(100)
-            # p = multiprocessing.Process(target=run_spider, args=(chunk,))
-            command = f"scrapy runspider kode.py -a urls='{url_list}'"
+            job_dir_url = os.path.join(KodeConfig.get("shared_data_path"), "scrapy_spider_state_dir", f"spider-{i}")
+            command = f"scrapy runspider kode.py -s JOBDIR={job_dir_url} -a urls='{url_list}' "
+
             print(command)
+
             p = subprocess.Popen(command, shell=True)
-            # p.start()
             processes.append(p)
 
     for p in processes:
