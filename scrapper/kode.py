@@ -91,12 +91,14 @@ class KodeSpider(scrapy.Spider):
 
         create_dirs_for(current_domain(response))
 
-        title = "_".join(response.css("title::text").getall()).replace("\n", "").strip() + f"-{timestamp}"
+        title = "_".join(response.css("title::text").getall()).replace("\n", "").strip()
+ 
+        common_file_name = re.sub(r'[^\w\s]', "_", title) + f"-{timestamp}"
 
-        json_file_name = get_file_name(current_domain(response), title, extension="json")
-        html_file_name = get_file_name(current_domain(response), title, extension="html")
+        json_file_name = get_file_name(current_domain(response), common_file_name, extension="json")
+        html_file_name = get_file_name(current_domain(response), common_file_name, extension="html")
 
-        json_body = get_json_content(response, timestamp, title, html_file_name)
+        json_body = get_json_content(response, timestamp, common_file_name, html_file_name)
 
         write_to_fs(response.body.decode("UTF-8", errors="ignore"), html_file_name)
         write_to_fs(json.dumps(json_body), json_file_name)
@@ -117,6 +119,7 @@ class KodeSpider(scrapy.Spider):
             fully_qualified_url = enqueueable_link(response, path)
 
             # Check if we have reahed the limit for the current domain, we don't want to waste time by filling the queueu with links that we are going to skip.
+            # This won't work as i need to compare with the inmemory queue : TODO 
             if fully_qualified_url and not has_hit_the_10k_limit(response):
                 print(f"Added {fully_qualified_url} to the frontier queue.")
 
@@ -231,7 +234,8 @@ if __name__ == "__main__":
 
         if chunk:
             job_dir_url = os.path.join(KodeConfig.get("shared_data_path"), "scrapy_spider_state_dir", f"spider-{i}")
-            command = f"scrapy runspider kode.py -s JOBDIR={job_dir_url} -a urls='{url_list}' "
+            # command = f"scrapy runspider kode.py -s JOBDIR={job_dir_url} -a urls='{url_list}' "
+            command = f"scrapy runspider kode.py -a urls='{url_list}' "
 
             print(command)
 
@@ -240,3 +244,4 @@ if __name__ == "__main__":
 
     for p in processes:
         p.wait()
+ 
