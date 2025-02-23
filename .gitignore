@@ -8,3 +8,5 @@ feeder/models/__pycache__
 .DS_STORE
 web/kode_app/libtorch
 web/kode_app/libtorch.zip
+vespa/model/*
+.vscode
