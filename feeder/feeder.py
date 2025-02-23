@@ -3,10 +3,10 @@ from models.models import ApplicationModel, FileQueue
 import os
 import time
 import requests
-from sentence_transformers import SentenceTransformer
+# from sentence_transformers import SentenceTransformer
 
 backoff_stage = 0
-model = SentenceTransformer("all-MiniLM-L6-v2")
+# model = SentenceTransformer("all-MiniLM-L6-v2")
 
 VESPA_URL = "http://vespa:8080/document/v1/kode_app/kode_app/docid/"
 # VESPA_URL = "http://localhost:8080/document/v1/kode_app/kode_app/docid/"
@@ -30,13 +30,14 @@ def read_data(file_record):
 
 def feed_to_vespa(file_record):
     global model
+
     data = read_data(file_record)
 
     if data is None:
         return
 
     # import pdb; pdb.set_trace()
-    embedding = model.encode(data["text"]).tolist()
+    # embedding = model.encode(data["text"]).tolist()
 
     request_data = {
         "fields":{
@@ -44,7 +45,8 @@ def feed_to_vespa(file_record):
             "text": data["text"],
             "timestamp": data["timestamp"],
             "url": data["url"],
-            "text_embedding": embedding
+            # "text_embedding": [embedding]
+            # "text_embedding": dumb_data
         }
     }
 
