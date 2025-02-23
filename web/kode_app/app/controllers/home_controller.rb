@@ -1,7 +1,4 @@
-require("transformers-rb")
-
 class HomeController < ApplicationController
-  @@model = Transformers.pipeline("embedding", "sentence-transformers/all-MiniLM-L6-v2")
   def index
     # render html: "hello world"
   end
@@ -12,8 +9,8 @@ class HomeController < ApplicationController
   end
 
   def make_vespa_request(query)
+    # TODO: update when dockerized
     vespa_url = "http://localhost:8080/search/"
-    embedding = @@model.(query).flatten
 
     uri = URI.parse(vespa_url)
     http = Net::HTTP.new(uri.host, uri.port)
@@ -21,16 +18,13 @@ class HomeController < ApplicationController
     request = Net::HTTP::Post.new(uri)
     request.content_type = "application/json"
 
-    request.body = {
-      "yql" => "select * from kode_app where ({targetHits:10}nearestNeighbor(text_embedding, query_tensor))",
-      "ranking" => "kode_app",
-      "ranking.features.query(query_tensor)" => embedding
-    }.to_json
-
+    request.body = vector_search(query).to_json    
+    
     start_time = Time.now.to_f
     response = http.request(request)
     end_time = Time.now.to_f
 
+    
     res = JSON.parse(response.body)
 
     data = {
@@ -40,11 +34,11 @@ class HomeController < ApplicationController
       items: []
     }
 
-    res["root"]["children"].each do |item|
+    res["root"]["children"]&.each do |item|
       fields = item["fields"]
       data[:items] << {
         title: fields["title"].split("-").first.gsub("_", " "),
-        text: fields["text"],
+        text: truncate_to_200_chars(fields["text"]),
         url: fields["url"]
       }
     end
@@ -54,5 +48,20 @@ class HomeController < ApplicationController
 
   def indexed_domains
     @domains = Domain.joins(:urls).group(:name).select(:name, "COUNT(url.domain_id) AS url_count")
+  end
+
+  private
+
+  def truncate_to_200_chars(str)
+    str.length > 200 ? str[0..200] + "..." : str
+  end
+
+  def vector_search(query)
+    {
+      "yql" => "select * from kode_app where userQuery() or ({targetHits: 100}nearestNeighbor(text_embedding, e))",
+      "tracelevel" => 1,
+      "input.query(e)" => "embed(e5, @user_query)",
+      "user_query" => query
+    }
   end
 end
