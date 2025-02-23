@@ -2,10 +2,12 @@ schema kode_app {
     document kode_app {
         field title type string {
             indexing: summary | index
+            index: enable-bm25
         }
         field text type string {
             indexing: attribute | summary | index
             attribute: fast-search
+            index: enable-bm25
         }
         field timestamp type long {
             indexing: attribute | summary
@@ -13,25 +15,24 @@ schema kode_app {
         field url type string {
             indexing: summary
         }
+    }
 
-        field text_embedding type tensor<float>(d0[768]) {
-            indexing: attribute | index
-            attribute {
-                distance-metric: angular
-            }
+    field text_embedding type tensor<float>(x[384]) {
+        indexing: input text | embed e5 | attribute | index
+        attribute {
+            distance-metric: angular
         }
     }
 
-    rank-profile kode_app inherits default {
+    rank-profile default inherits default {
         inputs {
-            query(query_tensor) tensor<float>(d0[768])
+            query(e) tensor<float>(x[384])
         }
 
         first-phase {
-            expression: sum(query(query_tensor) * attribute(text_embedding))
+            expression: nativeRank(title) * 2 + nativeRank(text) + closeness(field, text_embedding)
         }
-        second-phase {
-            expression: nativeRank(title, text) + sum(query(query_tensor) * attribute(text_embedding))
-        }
+
+        match-features: bm25(text) closeness(field, text_embedding)
     }
 }
