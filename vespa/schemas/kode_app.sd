@@ -8,6 +8,7 @@ schema kode_app {
             indexing: attribute | summary | index
             attribute: fast-search
             index: enable-bm25
+            summary: dynamic
         }
         field timestamp type long {
             indexing: attribute | summary
@@ -33,6 +34,12 @@ schema kode_app {
             expression: nativeRank(title) * 2 + nativeRank(text) + closeness(field, text_embedding)
         }
 
-        match-features: bm25(text) closeness(field, text_embedding)
+        match-features: bm25(title) bm25(text) closeness(field, text_embedding)
+        global-phase {
+            expression {
+              reciprocal_rank(closeness(field, text_embedding)) + 
+              reciprocal_rank(bm25(text)) + 2 * reciprocal_rank(bm25(title))
+            }
+        }
     }
 }
