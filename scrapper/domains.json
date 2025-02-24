@@ -1,6 +1,6 @@
 {
   "start_urls": [
-    "http://angular.io/",
+    "http://angular.dev/",
     "http://api.drupal.org/",
     "http://api.haxe.org/",
     "http://api.qunitjs.com/",
@@ -168,7 +168,7 @@
     "http://yarnpkg.com/"
   ],
   "allowed_domains": [
-    "angular.io",
+    "angular.dev",
     "api.drupal.org",
     "api.haxe.org",
     "api.qunitjs.com",
