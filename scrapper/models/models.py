@@ -3,10 +3,6 @@ import datetime
 from kode_config import KodeConfig
 import os
 
-# import pdb; pdb.set_trace()
-
-print("The docker host is : ", os.getenv("DB_URL"))
-
 db = PostgresqlDatabase(
         KodeConfig.get("db_name"),
         user=KodeConfig.get("db_user"),
