@@ -8,8 +8,6 @@ import os
 import trafilatura as trafil
 from pathlib import Path
 import re
-from scrapy.crawler import CrawlerProcess
-from scrapy.utils.project import get_project_settings
 import math
 import tldextract as tld
 
@@ -187,8 +185,9 @@ def enqueueable_link(response, path):
     # If path is a relative path. !(.scheme and .netloc) checks if the path is relative path and not a fully quilified url.
     if not (bool(urlparse(path).scheme) and bool(urlparse(path).netloc)) and is_enqueueable(response.urljoin(path)):
         enqueueable = response.urljoin(path)
-    # If link is absolute path, then check if the base url is same and the path is enqueueable
-    elif bool(urlparse(path).netloc) and tld.extract(response.url).domain == tld.extract(path).domain: # Todo: why did I wrote this condition, seems to be useless.
+    # If a site a different sub domain for documentation like: elm-lang.org -> guide.elm-lang.org, here we want to crawl guide.elm-lang.org
+    # There is another case, where a domain has multiple sub-domains. is_enqueueable(path) will consider only those subdomains that clearly follow the regex pattern in the function. 
+    elif bool(urlparse(path).netloc) and tld.extract(response.url).domain == tld.extract(path).domain and is_enqueueable(path):
         enqueueable = path
 
     return enqueueable
