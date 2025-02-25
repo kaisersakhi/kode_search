@@ -1,3 +1,5 @@
+require "net/http"
+
 class HomeController < ApplicationController
   def index
     # render html: "hello world"
@@ -10,7 +12,7 @@ class HomeController < ApplicationController
 
   def make_vespa_request(query)
     # TODO: update when dockerized
-    vespa_url = "http://localhost:8080/search/"
+    vespa_url = "http://vespa:8080/search/"
 
     uri = URI.parse(vespa_url)
     http = Net::HTTP.new(uri.host, uri.port)

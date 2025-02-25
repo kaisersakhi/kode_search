@@ -80,9 +80,11 @@ test:
 production:
   primary: &primary_production
     <<: *default
-    database: kode_app_production
-    username: kode_app
-    password: <%= ENV["KODE_APP_DATABASE_PASSWORD"] %>
+    database: <%= ENV.fetch("DB_NAME", "place_holder_for_asset_precompile_pipeline") %>
+    username: <%= ENV.fetch("DB_USER", "place_holder_for_asset_precompile_pipeline") %>
+    password: <%= ENV.fetch("DB_PASSWORD", "place_holder_for_asset_precompile_pipeline") %>
+    host: <%= ENV.fetch("DB_URL", "place_holder_for_asset_precompile_pipeline") %>
+    port: <%= ENV.fetch("DB_PORT", "place_holder_for_asset_precompile_pipeline") %>
   cache:
     <<: *primary_production
     database: kode_app_production_cache
