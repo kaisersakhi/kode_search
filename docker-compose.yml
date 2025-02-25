@@ -48,6 +48,7 @@ services:
     volumes:
       - ./vespa:/app/package
       - ./vespa/data:/opt/vespa/var
+      - ./vespa/logs:/opt/vespa/logs
       - ./vespa/deploy-and-start.sh:/deploy-and-start.sh
     networks:
       - backend

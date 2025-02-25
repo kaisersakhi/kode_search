@@ -3,8 +3,8 @@
 
     <container id="default" version="1.0">
         <component id="e5" type="hugging-face-embedder">
-        <transformer-model url="https://huggingface.co/intfloat/e5-small-v2/resolve/main/model.onnx"/>
-        <tokenizer-model url="https://huggingface.co/intfloat/e5-small-v2/raw/main/tokenizer.json"/>
+            <transformer-model url="https://huggingface.co/intfloat/e5-small-v2/resolve/main/model.onnx"/>
+            <tokenizer-model url="https://huggingface.co/intfloat/e5-small-v2/raw/main/tokenizer.json"/>
 
             <prepend> <!-- E5 prompt instructions -->
                 <query>query:</query>
@@ -26,6 +26,12 @@
         <nodes>
             <node hostalias="node1" distribution-key="0" />
         </nodes>
+
+        <tuning>
+            <resource-limits>
+                <disk>0.98</disk>
+            </resource-limits>
+        </tuning>
     </content>
 
 </services>
