@@ -3,12 +3,14 @@ schema kode_app {
         field title type string {
             indexing: summary | index
             index: enable-bm25
+            match: text
         }
         field text type string {
             indexing: attribute | summary | index
             attribute: fast-search
             index: enable-bm25
             summary: dynamic
+            match: text
         }
         field timestamp type long {
             indexing: attribute | summary
@@ -18,10 +20,20 @@ schema kode_app {
         }
     }
 
+    fieldset default {
+        fields: title, text
+    }
+
     field text_embedding type tensor<float>(x[384]) {
-        indexing: input text | embed e5 | attribute | index
+        indexing: input title." ".input text | embed e5 | attribute | index
         attribute {
             distance-metric: angular
+        }
+    }
+
+    rank-profile bm25 {
+        first-phase {
+            expression: 2 * bm25(title) + bm25(text)
         }
     }
 
@@ -31,15 +43,9 @@ schema kode_app {
         }
 
         first-phase {
-            expression: nativeRank(title) * 2 + nativeRank(text) + closeness(field, text_embedding)
+            expression: bm25(title) + bm25(text) + closeness(field, text_embedding)
         }
 
         match-features: bm25(title) bm25(text) closeness(field, text_embedding)
-        global-phase {
-            expression {
-              reciprocal_rank(closeness(field, text_embedding)) + 
-              reciprocal_rank(bm25(text)) + 2 * reciprocal_rank(bm25(title))
-            }
-        }
     }
 }

@@ -58,8 +58,7 @@ class HomeController < ApplicationController
 
   def vector_search(query)
     {
-      "yql" => "select * from kode_app where userQuery() or ({targetHits: 100}nearestNeighbor(text_embedding, e))",
-      "tracelevel" => 1,
+      "yql" =>"select title, text, url from kode_app WHERE ({targetHits:10}userInput(@user_query)) or ({targetHits:10}nearestNeighbor(text_embedding, e))",
       "input.query(e)" => "embed(e5, @user_query)",
       "user_query" => query
     }
