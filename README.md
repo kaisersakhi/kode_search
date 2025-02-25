@@ -56,5 +56,6 @@ docker-compose up vespa -d
 
 docker-compose up feeder -d
 
-#4 TODO web
+#4 
+docker-compose up web -d
 ```
