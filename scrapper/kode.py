@@ -11,6 +11,7 @@ import re
 import math
 import tldextract as tld
 
+domains = []
 
 def domain_hash(dlist):
     root_domains = map(lambda d: (tld.extract(d).domain), dlist)
@@ -63,13 +64,15 @@ class KodeSpider(scrapy.Spider):
         ])
 
     def __init__(self, urls=None, *args, **kwargs):
+        global domains
+
         print(f"Urls to be crawled : {urls}")
         self.pwd = os.path.dirname(os.path.abspath(__file__))
         self.start_urls = urls.split()
 
         with open(os.path.join(self.pwd, "domains.json"), "r") as file:
             data = json.load(file)
-            self.domains = domain_hash(data["start_urls"])
+            domains = domain_hash(data["start_urls"])
 
         self.data_dir = KodeConfig.get("shared_data_path")
 
@@ -81,8 +84,9 @@ class KodeSpider(scrapy.Spider):
 
 
     def parse(self, response):
+        global domains
         # Return if root domain of {response.url} is not present in the allowed domains.
-        if not self.domains.get(tld.extract(response.url).domain):
+        if not domains.get(tld.extract(response.url).domain):
             print(f"{response.url} is not present in allowed domains.")
             return
 
@@ -180,6 +184,7 @@ def current_domain(response):
     return response.url.split("/")[2]
 
 def enqueueable_link(response, path):
+    global domains
     enqueueable = ""
 
     # If path is a relative path. !(.scheme and .netloc) checks if the path is relative path and not a fully quilified url.
@@ -187,7 +192,7 @@ def enqueueable_link(response, path):
         enqueueable = response.urljoin(path)
     # If a site a different sub domain for documentation like: elm-lang.org -> guide.elm-lang.org, here we want to crawl guide.elm-lang.org
     # There is another case, where a domain has multiple sub-domains. is_enqueueable(path) will consider only those subdomains that clearly follow the regex pattern in the function. 
-    elif bool(urlparse(path).netloc) and tld.extract(response.url).domain == tld.extract(path).domain and is_enqueueable(path):
+    elif bool(urlparse(path).netloc) and bool(domains.get(tld.extract(response.url).domain)) and is_enqueueable(path):
         enqueueable = path
 
     return enqueueable
