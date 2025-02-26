@@ -11,3 +11,15 @@ web/kode_app/libtorch.zip
 vespa/model/*
 .vscode
 vespa/logs
+
+
+web/kode_app/config/credentials.yml.enc
+web/kode_app/.bundle
+web/kode_app/log/*
+
+web/kode_app/storage/*
+web/kode_app/public/assets
+
+web/kode_app/config/master.key
+
+web/kode_app/app/assets/builds/*
