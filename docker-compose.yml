@@ -11,6 +11,7 @@ services:
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - ${SHARED_DATA_PATH}/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ${SHARED_DATA_PATH}/database/db_data:/var/lib/postgresql/data
     ports:
       - "5433:5432"
     networks:
@@ -48,8 +49,6 @@ services:
     volumes:
       - ./vespa:/app/package
       - ./vespa/data:/opt/vespa/var
-      - ./vespa/logs:/opt/vespa/logs
-      - ./vespa/deploy-and-start.sh:/deploy-and-start.sh
     networks:
       - backend
     healthcheck:
@@ -57,8 +56,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    post_start:
-      - command: ["/bin/sh", "-c", "/deploy-and-start.sh"]
 
   feeder:
     build:

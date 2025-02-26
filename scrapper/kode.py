@@ -11,16 +11,10 @@ import re
 import math
 import tldextract as tld
 
-domains = []
-
-def domain_hash(dlist):
-    root_domains = map(lambda d: (tld.extract(d).domain), dlist)
-    return dict(zip(list(root_domains), dlist))
-
 class KodeSpider(scrapy.Spider):
     name = "kode"
     start_urls = []
-    domains = []
+    allowed_domains = []
 
     @classmethod
     def update_settings(cls, settings):
@@ -64,32 +58,20 @@ class KodeSpider(scrapy.Spider):
         ])
 
     def __init__(self, urls=None, *args, **kwargs):
-        global domains
-
         print(f"Urls to be crawled : {urls}")
         self.pwd = os.path.dirname(os.path.abspath(__file__))
         self.start_urls = urls.split()
 
         with open(os.path.join(self.pwd, "domains.json"), "r") as file:
             data = json.load(file)
-            domains = domain_hash(data["start_urls"])
+            self.allowed_domains = data["allowed_domains"]
 
         self.data_dir = KodeConfig.get("shared_data_path")
-
-        #     # Connect Database
-        # ApplicationModel.database.connect()
-        # ApplicationModel.database.create_tables([Domain, Url, FileQueue], safe=True)
 
         super().__init__()
 
 
     def parse(self, response):
-        global domains
-        # Return if root domain of {response.url} is not present in the allowed domains.
-        if not domains.get(tld.extract(response.url).domain):
-            print(f"{response.url} is not present in allowed domains.")
-            return
-
         if has_hit_the_10k_limit(response):
             print(f"{response.url} visited before or has reached 10k limit.")
             return
@@ -105,7 +87,7 @@ class KodeSpider(scrapy.Spider):
         json_file_name = get_file_name(current_domain(response), common_file_name, extension="json")
         html_file_name = get_file_name(current_domain(response), common_file_name, extension="html")
 
-        json_body = get_json_content(response, timestamp, common_file_name, html_file_name)
+        json_body = page_content(response, timestamp, common_file_name, html_file_name)
 
         if json_body is None:
             print(f"{response.url} has empty body.")
@@ -134,7 +116,7 @@ class KodeSpider(scrapy.Spider):
         for path in get_page_paths(response):
             fully_qualified_url = enqueueable_link(response, path)
 
-            # Check if we have reahed the limit for the current domain, we don't want to waste time by filling the queueu with links that we are going to skip.
+            # Check if we have reached the limit for the current domain, we don't want to waste time by filling the queueu with links that we are going to skip.
             # This won't work as i need to compare with the inmemory queue : TODO 
             if fully_qualified_url and not has_hit_the_10k_limit(response) and not url_visited_before(fully_qualified_url):
                 print(f"Added {fully_qualified_url} to the frontier queue.")
@@ -151,22 +133,24 @@ def get_file_name(current_domain, title, extension):
     sub_dir = "html_files" if extension == "html" else "json_files"
     return str(os.path.join(current_domain, sub_dir, f"{title}.{extension}"))
 
-def get_json_content(response, ts, title, html_file_name):
-    json_str = trafil.extract(response.body, output_format="json")
+def page_content(response, ts, title, html_file_name):
+    from trafilatura import bare_extraction
 
-    if not json_str:
+    result = bare_extraction(response.body, include_formatting=False)
+
+    if not result.text:
         print(f"Found empty body on {response.url}")
         return None
 
-    json_body = json.loads(json_str)
+    data = {}
 
-    # json_body["text"] = ; json_body already has text attribute populated by trafil.extract function.
-    json_body["title"] = title
-    json_body["timestamp"] = ts
-    json_body["url"] = response.url
-    json_body["html_source"] = html_file_name
+    data["title"] = title
+    data["timestamp"] = ts
+    data["url"] = response.url
+    data["html_source"] = html_file_name
+    data["text"] = result.text
 
-    return json_body
+    return data
 
 
 def write_to_fs(content, file_name):
@@ -184,23 +168,27 @@ def current_domain(response):
     return response.url.split("/")[2]
 
 def enqueueable_link(response, path):
-    global domains
     enqueueable = ""
-
     # If path is a relative path. !(.scheme and .netloc) checks if the path is relative path and not a fully quilified url.
     if not (bool(urlparse(path).scheme) and bool(urlparse(path).netloc)) and is_enqueueable(response.urljoin(path)):
         enqueueable = response.urljoin(path)
     # If a site a different sub domain for documentation like: elm-lang.org -> guide.elm-lang.org, here we want to crawl guide.elm-lang.org
     # There is another case, where a domain has multiple sub-domains. is_enqueueable(path) will consider only those subdomains that clearly follow the regex pattern in the function. 
-    elif bool(urlparse(path).netloc) and bool(domains.get(tld.extract(response.url).domain)) and is_enqueueable(path):
+    elif bool(urlparse(path).netloc) and is_enqueueable(path):
         enqueueable = path
 
     return enqueueable
 
 def is_enqueueable(link):
+    red_extensions = {'.pdf', '.jpg', '.jpeg', '.png', '.gif', '.zip', '.mp4', '.docx'}
+
+    if any(link.endswith(ext) for ext in red_extensions):
+        return False
+    
     #  only download those webpage that have following keywords in their urls:
     # docs, doc, documentation, documentations, user_guide, guide, user_guides, instructions,
-    pattern = r'\b(docs|doc|documentation|documentations|user_guide|guide|guides|user_guides|instructions|help|manual|how-to|tutorials|tutorial|references|reference|faq|api|support|kb|)\b'
+    pattern = r'\b(docs|doc|documentation|documentations|user_guide|guide|guides|user_guides|instructions|help|manual|manuals|how-to|tutorials|tutorial|references|reference|faq|api|support|kb|api|helpers|helper|wiki|getting-started|src|questions|training)\b'
+
     if re.search(pattern, link):
         return True
     return False
@@ -238,6 +226,8 @@ if __name__ == "__main__":
 
     os.makedirs(os.path.join(KodeConfig.get("shared_data_path"), "scrapy_spider_state_dir"), exist_ok=True)
 
+
+
     for i in range(process_num):
         start = i * chunk_size
         end = min(start + chunk_size, len(urls))
@@ -246,10 +236,14 @@ if __name__ == "__main__":
         url_list = " ".join(chunk)
 
         if chunk:
-            # job_dir_url = os.path.join(KodeConfig.get("shared_data_path"), "scrapy_spider_state_dir", f"spider-{i}")
-            # command = f"scrapy runspider kode.py -s JOBDIR={job_dir_url} -a urls='{url_list}' "
-            command = f"scrapy runspider kode.py -a urls='{url_list}'"
-            # command = f"scrapy runspider kode.py -a urls='https://www.haskell.org/'"
+            command = ""
+
+            job_dir_url = os.path.join(KodeConfig.get("shared_data_path"), "scrapy_spider_state_dir", f"spider-{i}")
+            if os.getenv("SET_SCRAPY_QUEUE_ON_DISK") == "true":
+                command = f"scrapy runspider kode.py -s JOBDIR={job_dir_url} -a urls='{url_list}' "
+            else:
+                command = f"scrapy runspider kode.py -a urls='{url_list}'"
+
             print(command)
 
             p = subprocess.Popen(command, shell=True)
