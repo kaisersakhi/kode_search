@@ -55,7 +55,12 @@ class HomeController < ApplicationController
   private
 
   def truncate_to_200_chars(str)
-    str.length > 200 ? str[0..200] + "..." : str
+    new_str = str.length > 200 ? str[0..200] + "..." : str
+
+    new_str.gsub!("<sep>", "")
+    new_str.gsub!("</sep>", "")
+    new_str.gsub!("<hi>", "<span class='text-white bg-yellow-700 rounded-sm px-1'>")
+    new_str.gsub("</hi>", "</span>").html_safe
   end
 
   def vector_search(query)
